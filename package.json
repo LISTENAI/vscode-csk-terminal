@@ -1,0 +1,120 @@
+{
+  "name": "csk-terminal",
+  "displayName": "csk-terminal",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "listenai",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:csk-terminal-view",
+    "onCommand:csk-terminal.startTerminal"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "csk-terminal",
+          "title": "CSK Terminal",
+          "icon": "src/terminal.svg"
+        }
+      ]
+    },
+    "views": {
+      "csk-terminal": [
+        {
+          "id": "csk-terminal-view",
+          "type": "webview",
+          "name": "CSK Terminal",
+          "icon": "src/terminal.svg",
+          "contextualTitle": "CSK Terminal"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "csk-terminal.startTerminal",
+        "title": "Start Terminal With New Configuration",
+        "category": "CSK Terminal",
+        "icon": {
+          "dark": "static/images/dark/connect.svg",
+          "light": "static/images/light/connect.svg"
+        }
+      },
+      {
+        "command": "csk-terminal.stopTerminal",
+        "title": "Stop Terminal",
+        "category": "CSK Terminal",
+        "icon": {
+          "dark": "static/images/dark/disconnect.svg",
+          "light": "static/images/light/disconnect.svg"
+        }
+      },
+      {
+        "command": "csk-terminal.clear",
+        "title": "Clear",
+        "category": "CSK Terminal",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "csk-terminal.save",
+        "title": "Save Terminal Output to File",
+        "category": "CSK Terminal",
+        "icon": "$(save)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "csk-terminal.clear",
+          "when": "view == csk-terminal-view",
+          "group": "navigation@0"
+        },
+        {
+          "command": "csk-terminal.startTerminal",
+          "when": "view == csk-terminal-view && !listenai.csk-terminal:running",
+          "group": "navigation@1"
+        },
+        {
+          "command": "csk-terminal.stopTerminal",
+          "when": "view == csk-terminal-view && listenai.csk-terminal:running",
+          "group": "navigation@1"
+        },
+        {
+          "command": "csk-terminal.save",
+          "when": "view == csk-terminal-view",
+          "group": "navigation@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.71.0",
+    "@typescript-eslint/eslint-plugin": "^5.31.0",
+    "@typescript-eslint/parser": "^5.31.0",
+    "@vscode/test-electron": "^2.1.5",
+    "eslint": "^8.20.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "serialport": "^10.4.0"
+  }
+}
