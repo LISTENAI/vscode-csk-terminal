@@ -22,18 +22,17 @@ export function activate(context: vscode.ExtensionContext) {
 	const terminal = new TerminalWebview(context);
 	// context.subscriptions.push(disposable);
 	context.subscriptions.push(vscode.commands.registerCommand('csk-terminal.stopTerminal', () => {
-		vscode.window.showInformationMessage('csk-terminal.stopTerminal!');
 		terminal.disconnect();
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('csk-terminal.clear', () => {
 		vscode.window.showInformationMessage('csk-terminal.clear!');
+		terminal.clear();
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('csk-terminal.startTerminal', () => {
-		vscode.window.showInformationMessage('csk-terminal.startTerminal!');
 		terminal.connect();
 	}));
 	context.subscriptions.push(vscode.commands.registerCommand('csk-terminal.save', () => {
-		vscode.window.showInformationMessage('csk-terminal.save!');
+		terminal.save();
 	}));
 
 	

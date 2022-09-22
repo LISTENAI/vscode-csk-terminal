@@ -187,10 +187,43 @@ class MultiStepInput {
 	}
 }
 
-export default async function multiSerailConfig(config: State | undefined) {
-  const state = config || {} as Partial<State>;
-  await MultiStepInput.run(input => pickPath(input, state));
+export default async function multiSerailConfig(configs: Array<State>) {
+  const state = {} as Partial<State>;
+	console.log(configs);
+	await MultiStepInput.run(input => pickPrePort(input, state, configs));
   return state as State;
+}
+
+async function pickPrePort(input: MultiStepInput, state: Partial<State>, configs: Array<State>) {
+	if (!configs?.length) {
+		return (input: MultiStepInput) => pickPath(input, state);
+	}
+  const resourceGroups: QuickPickItem[] = configs.map(port => ({
+		label: port.path,
+		description: `baudRate: ${port.baudRate}, dataBits: ${port.dataBits}, parity: ${port.parity}, stopBits: ${port.stopBits}`,
+		port: port
+	}));
+	resourceGroups.unshift({label: '[other]'});
+  const pick = await input.showQuickPick({
+    title: TITLE,
+    step: 1,
+    totalSteps: 1,
+    placeholder: '选择串口配置',
+    items: resourceGroups,
+    buttons: [],
+    shouldResume: shouldResume
+  });
+
+	const port = (<any>pick)?.port || undefined;
+	if (port) {
+		state.path = port.path;
+		state.baudRate = port.baudRate;
+		state.dataBits = port.dataBits;
+		state.stopBits = port.stopBits;
+		state.parity = port.parity;
+	} else {
+		return (input: MultiStepInput) => pickPath(input, state);
+	}
 }
 
 async function pickPath(input: MultiStepInput, state: Partial<State>) {

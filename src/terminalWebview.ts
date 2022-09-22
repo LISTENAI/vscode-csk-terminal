@@ -1,7 +1,7 @@
 import { ExtensionContext, commands, window, WebviewView, Webview, Uri, WebviewViewResolveContext, CancellationToken, SnippetString, WebviewViewProvider } from 'vscode';
 import multiSerailConfig from './multiStepSerialConfig';
 import { SerialPort } from 'serialport';
-import { ReadlineParser } from '@serialport/parser-readline';
+import { writeFile } from 'fs-extra';
 
 export default class TerminalWebview implements WebviewViewProvider {
 
@@ -13,7 +13,11 @@ export default class TerminalWebview implements WebviewViewProvider {
 
 	constructor(protected context: ExtensionContext) {
     this._extensionUri = context.extensionUri;
-    context.subscriptions.push(window.registerWebviewViewProvider(TerminalWebview.id, this));
+    context.subscriptions.push(window.registerWebviewViewProvider(TerminalWebview.id, this, {
+			webviewOptions: {
+				retainContextWhenHidden: true
+			}
+		}));
   }
 
 	public resolveWebviewView(
@@ -39,13 +43,16 @@ export default class TerminalWebview implements WebviewViewProvider {
 				case 'stdin':
 					this._serialWrite(message.value);
 					break;
+				case 'save':
+					const uartlog = message.value;
+					this._save(uartlog);
+					break;
 			}
 		});
 	}
 
 	public async connect() {
-		const config = await multiSerailConfig(this.context.globalState.get('recentPortSettings'));
-		console.log(config);
+		const config = await multiSerailConfig(this.context.globalState.get('recentPortSettings') || []);
 		const port = new SerialPort({
 			path: config.path,
 			baudRate: parseInt(config.baudRate),
@@ -54,8 +61,12 @@ export default class TerminalWebview implements WebviewViewProvider {
 			stopBits: config.stopBits,
 		});
 		this._port = port;
-		// const parser = this._port.pipe(new ReadlineParser());
-		this.context.globalState.update('recentPortSettings', config);
+		const configs: Array<any> = this.context.globalState.get('recentPortSettings') || [];
+		configs.unshift(config);
+		if (configs.length > 3) {
+			configs.pop();
+		}
+		this.context.globalState.update('recentPortSettings', configs);
 		this._postMessage({
 			type: 'connected',
 			value: true
@@ -74,23 +85,29 @@ export default class TerminalWebview implements WebviewViewProvider {
 		this._port?.close(() => {
 			commands.executeCommand('setContext', 'listenai.csk-terminal:running', !1);
 			this._port = undefined;
+			this._postMessage({
+				type: 'connected',
+				value: false
+			});
 		});
 	}
 
-	// public async showPorts() {
-	// 	const ports = await SerialPort.list();
-	// 	console.log(ports);
-	// }
+	public async clear() {
+		this._postMessage({type: 'clear'});
+	}
 
-	// public addColor() {
-	
-	// }
+	public async save() {
+		this._postMessage({type: 'save'});
+	}
 
-	// public clearColors() {
-	// 	if (this._view) {
-	// 		this._view.webview.postMessage({ type: 'clearColors' });
-	// 	}
-	// }
+	private async _save(log: string) {
+		const uri = await window.showSaveDialog({
+			title: 'yoyo'
+		});
+		if (uri?.path) {
+			await writeFile(uri?.path, log);
+		}
+	}
 
 	private _getHtmlForWebview(webview: Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
