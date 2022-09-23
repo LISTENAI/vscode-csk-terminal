@@ -1,9 +1,10 @@
 {
   "name": "csk-terminal",
   "displayName": "CSK Terminal",
-  "description": "",
-  "version": "0.0.2",
+  "description": "A serial terminal for VS Code",
+  "version": "0.0.3",
   "publisher": "listenai",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.70.0"
   },

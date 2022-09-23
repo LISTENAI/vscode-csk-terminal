@@ -53,14 +53,27 @@ export default class TerminalWebview implements WebviewViewProvider {
 
 	public async connect() {
 		const config = await multiSerailConfig(this.context.globalState.get('recentPortSettings') || []);
-		const port = new SerialPort({
-			path: config.path,
-			baudRate: parseInt(config.baudRate),
-			dataBits: config.dataBits,
-			parity: config.parity,
-			stopBits: config.stopBits,
-		});
-		this._port = port;
+		let port: SerialPort;
+		try {
+			port = await new Promise((res, rej) => {
+				let port = new SerialPort({
+					path: config.path,
+					baudRate: parseInt(config.baudRate),
+					dataBits: config.dataBits,
+					parity: config.parity,
+					stopBits: config.stopBits,
+				}, (err) => {
+					err ? rej(`${config.path} can not open. Check the serial is conneted and retry.`) : res(port);
+				});	
+			});
+			this._port = port;
+		} catch (error) {
+			this._postMessage({
+				type: 'stdout',
+				value: `\x1b[31m${error}\x1b[m\r\n`
+			});
+			return;
+		}
 		const configs: Array<any> = this.context.globalState.get('recentPortSettings') || [];
 		configs.unshift(config);
 		if (configs.length > 3) {
